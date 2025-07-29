@@ -1,0 +1,32 @@
+name: Build EXE for Windows
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Build EXE (GUI - No Console)
+        run: pyinstaller --onefile --windowed --noconsole --name "MikroEntegrasyon" --ico=docs/tex_logo.ico main_gui.py
+
+      - name: Upload EXE as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-exe
+          path: dist/MikroEntegrasyon.exe
