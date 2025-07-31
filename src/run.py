@@ -15,11 +15,11 @@ class Run:
     def __init__(self):
         self._configs = Configs()
         self._db_config: dict[str, any] = self._configs.db_config()
-        db_conn = DatabaseConnector(**self._db_config)
+        self._db_conn = DatabaseConnector(**self._db_config)
         self._mikro_config: dict[str, str] = self._configs.mikro_config()
         self._siparis_kaydet_v2_generator = SiparisKaydetV2JSON(**self._mikro_config)
         self._login_mikro = MikroApiUp(**self._mikro_config)
-        self._extractor = Extractor(db_conn)
+
         self._transformer = Transformer()
         self._password_generator = MD5HashedPassword(self._mikro_config.get("kullanici_kodu"))
         self._loader = Loader()
@@ -31,20 +31,23 @@ class Run:
         while True:
 
             try:
-                latest_order_json: dict[str, any] = self._extractor.get_latest_order_from_orders_table()
+                db_conn = DatabaseConnector(**self._db_config)
+                extractor = Extractor(db_conn)
+
+                latest_order_json: dict[str, any] = extractor.get_latest_order_from_orders_table()
 
                 order_code_in_doc: str = self._file_handler.get_last_order_code_from_txt()
 
                 if latest_order_json.get("Code") != order_code_in_doc:
 
-                    order_id, created_at, customer_id = (self._extractor.
+                    order_id, created_at, customer_id = (extractor.
                                                          fetch_from_latest_order(latest_order=latest_order_json))
 
-                    customer_code: str = (self._extractor.
+                    customer_code: str = (extractor.
                                           fetch_customer_code_from_latest_users(customer_id=customer_id))
 
-                    self._extractor.get_latest_order_item_from_order_items_table(order_id=order_id)
-                    order_items: list[dict] = self._extractor.fetch_product_code_from_products_table()
+                    extractor.get_latest_order_item_from_order_items_table(order_id=order_id)
+                    order_items: list[dict] = extractor.fetch_product_code_from_products_table()
 
                     final_order_items: list[dict[str, any]] = self._transformer.prepare_final_order_items(
                         order_items=order_items,
