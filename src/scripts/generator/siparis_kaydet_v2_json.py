@@ -12,7 +12,6 @@ class SiparisKaydetV2JSON:
         self._firma_kod: str = firma_kodu
         self._kullanici_kodu: str = kullanici_kodu
         self._sifre: str = sifre
-        self._seriler_no : int = 0
 
         self._current_year: str = datetime.today().strftime("%Y")
 
@@ -35,10 +34,10 @@ class SiparisKaydetV2JSON:
         for order_item in final_order_items:
             satir = {
                 "sip_tarih": order_item.get('orderDate', ''),
-                "seriler": f"ARTEK{self._seriler_no}",
+                "seriler": "",
                 "sip_birim_pntr": 0,
                 "sip_cins": 0,
-                "sip_evrakno_seri": order_item.get('orderCode', ''),
+                "sip_evrakno_seri": "ARTEK2B",
                 "sip_musteri_kod": order_item.get('customerCode', ''),
                 "sip_stok_kod": order_item.get('productCode', ''),
                 "sip_b_fiyat": float(order_item.get('price', 0)),
@@ -56,7 +55,6 @@ class SiparisKaydetV2JSON:
             }
             satirlar.append(satir)
 
-        self._seriler_no += 1
         return satirlar
 
     @staticmethod
